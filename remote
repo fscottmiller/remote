@@ -1,0 +1,104 @@
+main() {
+    case $1 in
+        help)
+            echo "No help for you today, sorry! We're working on it."
+            exit 0
+            ;;
+        workspace)
+            workspace ${@:2}
+            ;;
+        group)
+            group ${@:2}
+            ;;
+        *)
+            echo "Oops! $1 is not a valid command."
+            exit 1
+            ;;
+    esac
+}
+
+check_for_existing_namespace() {
+    read -ra ADDR <<< "$(kubectl get ns -o=jsonpath='{.items[*].metadata.name}')" 
+    for i in "${ADDR[@]}"; do 
+        if [ "$1" == $i ]
+        then
+            return 1
+        fi
+    done
+    return 0
+}
+
+group_create() {
+    if [[ $(check_for_existing_namespace $1) ]]; then
+        printf "%s\n" "Error: namespace $1 already exists"
+        exit 1
+    else   
+        echo "nope"
+        echo $(check_for_existing_namespace $1)
+    fi
+    printf "%s\n" "Initializing in namespace '$1'..."
+    kubectl create ns $1
+    if  [ ! -d ".remote" ]; then
+        mkdir .remote
+    fi
+    if [ ! -f .remote/$1 ]; then
+        mkdir .remote/$1
+    else
+        printf "%s\n" "Error: directory .remote/$1 already exists. Please delete it."
+    fi
+}
+
+group_delete() {
+    check_for_existing_namespace $1
+}
+
+group() {
+    case $1 in
+        create)
+            group_create ${@:2}
+            ;;
+        delete)
+            group_delete ${@:2}
+            ;;
+        list)
+            group_list 
+            ;;
+        *)
+            printf "%s\n" "Error: $1 is not a valid command."
+            ;;
+    esac
+}
+
+group_list() {
+    if [ ! -d .remote ]; then
+        printf "%s\n" "Error: no .remote directory. Try creating a group."
+    fi
+    printf "%s\n" "Your groups:"
+    read -ra ADDR <<< "$(ls .remote)"
+    for i in "${ADDR[@]}"; do
+        printf "%s\n" " - $i"
+    done
+}
+
+workspace() {
+    case $1 in
+        create)
+            echo "Creating workspace"
+            ;;
+        delete)
+            echo "Deleting workspace"
+            ;;
+        list) 
+            echo "Listing workspaces"
+            ;;
+        help)
+            printf "%s\n" "Available Commands:" " - create" " - delete" " - list"
+            ;;
+        *)
+            echo "Oops! $1 is not a valid command."
+            printf "%s\n" "Available Commands:" " - create" " - delete" " - list"
+            ;;
+    esac
+}
+
+main $@
