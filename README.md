@@ -1,3 +1,21 @@
+# Usage
+
+Right now, remote is a CLI that requires that you have kubectl installed and configured. 
+
+Available commands:
+```
+remote group create {name}
+remote group delete {name}
+remote group list
+
+remote --group {group} workspace create {name}
+remote --group {group} workspace delete {name}
+remote --group {group} workspace list
+```
+A remote group corresponds to a namespace; each workspace corresponds to one pod. 
+Each pod currently get its own load balancer and is set with the default password 'password'.
+Additionally, workspaces are not configured at all on startup and have no persistence.
+
 # Remote
 
 So, I guess what I'm thinking here is that I don't know of any containerized workstation management system. There's a lot of value in using containers as dev machines, and they're really not that hard to set up if you're a big docker dev, but what about management at scale? We could make it happen.
